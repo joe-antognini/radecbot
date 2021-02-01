@@ -140,4 +140,5 @@ def compose_moonsun_tweet():
 
     return '\n'.join(s)
 
+print(compose_planet_tweet())
 print(compose_moonsun_tweet())
