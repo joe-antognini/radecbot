@@ -41,13 +41,14 @@ SYMBOLS = {
 
 def load_ephemerides():
     cache_dir = os.path.join(os.getenv('HOME'), '.cache/radecbot')
+    loader = skyfield.api.Loader(cache_dir)
+
     filename = os.path.join(cache_dir, EPHEMERIDES_FILE)
     if not os.path.exists(filename):
-        loader = skyfield.api.Loader(cache_dir)
         url = loader.build_url(EPHEMERIDES_FILE)
         loader.download(url, filename)
 
-    return loader.open(EPHEMERIDES_FILE)
+    return loader(EPHEMERIDES_FILE)
 
 
 def get_planet_radec(ephemerides, planet, t):
