@@ -39,6 +39,17 @@ SYMBOLS = {
 }
 
 
+def load_ephemerides():
+    cache_dir = os.path.join(os.getenv('HOME'), '.cache/radecbot')
+    filename = os.path.join(cache_dir, EPHEMERIDES_FILE)
+    if not os.path.exists(filename):
+        loader = skyfield.api.Loader(cache_dir)
+        url = loader.build_url(EPHEMERIDES_FILE)
+        loader.download(url, filename)
+
+    return loader.open(EPHEMERIDES_FILE)
+
+
 def get_planet_radec(ephemerides, planet, t):
     position = ephemerides[Planets.EARTH.value].at(t).observe(
         ephemerides[planet.value]
@@ -81,7 +92,7 @@ def moon_illumination(phase):
 
 
 def compose_planet_tweet():
-    ephemerides = skyfield.api.load(EPHEMERIDES_FILE)
+    ephemerides = load_ephemerides()
     t = skyfield.api.load.timescale().now()
 
     radecs = get_all_radecs(ephemerides, t)
@@ -129,7 +140,7 @@ def phase_str(phase):
 
 
 def compose_moonsun_tweet():
-    ephemerides = skyfield.api.load(EPHEMERIDES_FILE)
+    ephemerides = load_ephemerides()
     t = skyfield.api.load.timescale().now()
     radecs = get_all_radecs(ephemerides, t)
 
