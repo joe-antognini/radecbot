@@ -163,7 +163,7 @@ def compose_moonsun_tweet():
     return '\n'.join(s)
 
 
-def tweet(s):
+def tweet():
     config_path = os.path.join(
         os.getenv('HOME'), '.config/radecbot/config.yaml'
     )
