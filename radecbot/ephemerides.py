@@ -1,8 +1,12 @@
 """Calculate ephemerides."""
 
+import os
 from enum import Enum
 
+import numpy as np
 import skyfield.api
+import tweepy
+import yaml
 from skyfield.framelib import ecliptic_frame
 
 
@@ -50,15 +54,15 @@ def get_all_radecs(ephemerides, t):
     for planet in Planets:
         if planet == Planets.EARTH:
             continue
-        
+
         ra, dec = get_planet_radec(ephemerides, planet, t)
 
         radecs[planet] = (ra, dec)
-    
+
     return radecs
 
 
-def get_moon_phase(ephemerides, t):
+def moon_phase(ephemerides, t):
     sun = ephemerides[Planets.SUN.value]
     earth = ephemerides[Planets.EARTH.value]
     moon = ephemerides[Planets.MOON.value]
@@ -70,6 +74,10 @@ def get_moon_phase(ephemerides, t):
     _, lunar_longitude, _ = apparent_moon.frame_latlon(ecliptic_frame)
 
     return (lunar_longitude.degrees - solar_longitude.degrees) % 360
+
+
+def moon_illumination(phase):
+    return 100 * (1 - np.abs(phase - 180) / 180)
 
 
 def compose_planet_tweet():
@@ -96,25 +104,28 @@ def compose_planet_tweet():
     return '\n'.join(s)
 
 
-def get_phase_str(phase):
+def phase_str(phase):
     if phase >= 345 or phase < 15:
         phase_str = 'new'
     elif phase >= 15 and phase < 75:
-        phase_str = 'waxing crescent'
+        phase_str = 'a waxing crescent'
     elif phase >= 75 and phase < 105:
         phase_str = 'at first quarter'
     elif phase >= 105 and phase < 165:
-        phase_str = 'waxing gibbous'
+        phase_str = 'a waxing gibbous'
     elif phase >= 165 and phase < 195:
         phase_str = 'full'
     elif phase >= 195 and phase < 255:
-        phase_str = 'waning gibbous'
+        phase_str = 'a waning gibbous'
     elif phase >= 255 and phase < 285:
         phase_str = 'at third quarter'
     elif phase >= 285 and phase < 345:
-        phase_str = 'waning crescent'
+        phase_str = 'a waning crescent'
 
-    return 'The moon is ' + phase_str + '.'
+    illumination = int(round(moon_illumination(phase)))
+    return (
+        f'The moon is {phase_str} and is {illumination}% illuminated.'
+    )
 
 
 def compose_moonsun_tweet():
@@ -134,11 +145,27 @@ def compose_moonsun_tweet():
             f'{dec_deg:+03d}°{abs(dec_min):01d}′{abs(dec_sec):02}″'
         )
 
-    moon_phase = get_moon_phase(ephemerides, t)
+    current_moon_phase = moon_phase(ephemerides, t)
     s.append('')
-    s.append(get_phase_str(moon_phase))
+    s.append(phase_str(current_moon_phase))
 
     return '\n'.join(s)
 
-print(compose_planet_tweet())
-print(compose_moonsun_tweet())
+
+def tweet(s):
+    config_path = os.path.join(
+        os.getenv('HOME'), '.config/radecbot/config.yaml'
+    )
+    with open(config_path) as fp:
+        config = yaml.safe_load(fp)
+    auth = tweepy.OAuthHandler(config['api_key'], config['api_secret_key'])
+    auth.set_access_token(
+        config['access_token'], config['access_token_secret']
+    )
+    api = tweepy.API(auth)
+    api.update_status(compose_planet_tweet())
+    api.update_status(compose_moonsun_tweet())
+
+
+if __name__ == '__main__':
+    tweet()
