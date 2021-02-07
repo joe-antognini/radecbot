@@ -5,6 +5,7 @@ Moon, and planets.
 
 """
 
+import versioneer
 from setuptools import setup
 
 with open('README.md') as fp:
@@ -12,7 +13,8 @@ with open('README.md') as fp:
 
 setup(
     name='radecbot',
-    version='0.1.0',
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     description='Twitter bot that tweets the positions of the Sun, Moon, and '
                 'planets.',
     long_description=long_description,
