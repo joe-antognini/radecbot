@@ -7,6 +7,7 @@ import numpy as np
 import skyfield.api
 import tweepy
 import yaml
+from skyfield.api import Loader
 from skyfield.framelib import ecliptic_frame
 
 
@@ -39,16 +40,24 @@ SYMBOLS = {
 }
 
 
-def load_ephemerides():
-    cache_dir = os.path.join(os.getenv('HOME'), '.cache/radecbot')
-    loader = skyfield.api.Loader(cache_dir)
+def load_ephemerides(cache_dir=None, ephemerides_file=EPHEMERIDES_FILE):
+    if cache_dir is None:
+        cache_dir = os.path.join(os.getenv('HOME'), '.cache/radecbot')
 
-    filename = os.path.join(cache_dir, EPHEMERIDES_FILE)
+    loader = Loader(cache_dir)
+
+    filename = os.path.join(cache_dir, ephemerides_file)
     if not os.path.exists(filename):
-        url = loader.build_url(EPHEMERIDES_FILE)
+        url = loader.build_url(ephemerides_file)
         loader.download(url, filename)
 
-    return loader(EPHEMERIDES_FILE)
+    if not os.path.exists(loader.path_to(ephemerides_file)):
+        raise FileNotFoundError(
+            f'Ephemerides file {loader.path_to(ephemerides_file)} not found! '
+            f'Did the download fail?'
+        )
+
+    return loader(ephemerides_file)
 
 
 def get_planet_radec(ephemerides, planet, t):
