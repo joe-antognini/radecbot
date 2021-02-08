@@ -41,7 +41,8 @@ the installation will take a few more steps than the typical Python package
 
 1. Clone the repository.
 2. `cd /path/to/repo`
-3. Run `pip install -r requirements.txt`.
+3. Create a virtual environment and enter into it.
+4. Run `pip install -r requirements.txt`.
 
 ### Setting up the Twitter API keys
 
@@ -71,12 +72,32 @@ python /path/to/repo/radecbot/radecbot.py
 This will generate the text for the two tweets and automatically post them
 (assuming you have set up the API keys correctly).
 
+I recommend that you install and run this from within a unique virtual
+environment in order to keep the dependencies from changing underneath you.  I
+personally find [virtualenvwrapper][4] to be convenient.
+
 The first time the script is run it will need to download the ephemerides from
 JPL.  While the ephemerides are not an especially large file (17 MB), their
 server is also not especially fast so it will take a little longer on your
 first run.  Subsequently, `radecbot` caches the ephemerides at
 `$HOME/.cache/radecbot`.  This will tide you over until 2053, at which point
 you will need to download a new set of ephemerides.
+
+### Running `radecbot` periodically
+
+[@ra_dec_bot][1] tweets at noon and midnight UTC every day.  If you are in a
+Unix environment, you can set up this script to do this by creating a cron job.
+To edit your cron jobs, run:
+
+```sh
+crontab -e
+```
+
+And then add a line that looks like this:
+
+```
+0 */12 * * * /path/to/virtual/environment/python/executable /path/to/repo/radecbot/radecbot.py
+```
 
 ## FAQs
 
@@ -87,6 +108,21 @@ Moon, and planets.  Behind the scenes Skyfield is using a set of ephemerides
 provided by JPL.  In particular, `radecbot` uses the DE421 ephemerides, which
 is valid from July 29, 1899 to October 9, 2053.
 
+### These positions are different from WolframAlpha! What gives?
+
+Some services like WolframAlpha and Stellarium provide positions that disagree
+from this code by up to a few arcminutes.  I have not been able to reverse
+engineer exactly how they are computing their positions, but because these
+services closely agree with each other, I suspect that they're using some
+lightweight, lower precision algorithm.
+
+At any rate, the positions provided by [@ra_dec_bot][1] match with the
+positions provided by JPL's [Horizon][3] service to within one arcsecond.
+
 [1]: https://twitter.com/ra_dec_bot
 
 [2]: https://rhodesmill.org/skyfield/
+
+[3]: https://ssd.jpl.nasa.gov/horizons.cgi
+
+[4]: https://virtualenvwrapper.readthedocs.io/en/latest/
