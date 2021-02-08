@@ -9,7 +9,7 @@ import versioneer
 from setuptools import setup
 
 with open('README.md') as fp:
-    long_description=fp.read()
+    long_description = fp.read()
 
 setup(
     name='radecbot',

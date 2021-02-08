@@ -6,7 +6,6 @@ import tempfile
 import unittest
 import unittest.mock
 from pathlib import Path
-from textwrap import dedent
 
 import skyfield
 import skyfield.api
@@ -99,7 +98,7 @@ class TestEphemerides(unittest.TestCase):
 
         # This expected phase was found by getting the position of the Sun and
         # moon from JPL's Horizon service for 12pm UTC on January 1, 2021.
-        # 
+        #
         # The RA and Dec were then converted to the ecliptic latitude and
         # longitude using NED's coordinate calculator here:
         # https://ned.ipac.caltech.edu/coordinate_calculator

@@ -117,9 +117,9 @@ def compose_planet_tweet():
         ra_hr, ra_min, ra_sec = map(int, map(round, ra.hms()))
         dec_deg, dec_min, dec_sec = map(int, map(round, dec.dms()))
         s.append(
-                f'{SYMBOLS[planet]}: '
-                f'{ra_hr:02d}h{ra_min:02d}m{ra_sec:02d}s; '
-                f'{dec_deg:+03d}°{abs(dec_min):01d}′{abs(dec_sec):02}″'
+            f'{SYMBOLS[planet]}: '
+            f'{ra_hr:02d}h{ra_min:02d}m{ra_sec:02d}s; '
+            f'{dec_deg:+03d}°{abs(dec_min):01d}′{abs(dec_sec):02}″'
         )
 
     return '\n'.join(s)
