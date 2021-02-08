@@ -7,24 +7,28 @@ and planets, along with the phase and illumination of the Moon.
 Each time the script is called, it will generate two tweets.  One will look
 something like this:
 
-> Current RA/Dec of the Sun & Moon:
-> 
-> ☉: 21h22m18s; -15°23′32″
-> ☾: 17h06m14s; -22°50′09″
-> 
-> The moon is a waning crescent and is 34% illuminated.
+```
+Current RA/Dec of the Sun & Moon:
+
+☉: 21h22m18s; -15°23′32″
+☾: 17h06m14s; -22°50′09″
+
+The moon is a waning crescent and is 34% illuminated.
+```
 
 And the other will look something like this:
 
-> Current planetary RA/Decs:
->
-> ☿: 21h31m14s; -11°2′08″
-> ♀: 20h36m25s; -19°27′05″
-> ♂: 02h50m31s; +17°45′15″
-> ♃: 20h55m14s; -17°55′50″
-> ♄: 20h32m43s; -19°15′42″
-> ⛢: 02h17m57s; +13°20′03″
-> ♆: 23h21m54s; -05°15′59″
+```
+Current planetary RA/Decs:
+
+☿: 21h31m14s; -11°2′08″
+♀: 20h36m25s; -19°27′05″
+♂: 02h50m31s; +17°45′15″
+♃: 20h55m14s; -17°55′50″
+♄: 20h32m43s; -19°15′42″
+⛢: 02h17m57s; +13°20′03″
+♆: 23h21m54s; -05°15′59″
+```
 
 ## Installation
 
