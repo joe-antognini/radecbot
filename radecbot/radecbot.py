@@ -61,8 +61,10 @@ def load_ephemerides(cache_dir=None, ephemerides_file=EPHEMERIDES_FILE):
 
 
 def get_planet_radec(ephemerides, planet, t):
-    position = ephemerides[Planets.EARTH.value].at(t).observe(
-        ephemerides[planet.value]
+    position = (
+        ephemerides[Planets.EARTH.value]
+        .at(t)
+        .observe(ephemerides[planet.value])
     )
     ra, dec, _ = position.radec()
 
@@ -144,9 +146,7 @@ def phase_str(phase):
         phase_str = 'a waning crescent'
 
     illumination = int(round(moon_illumination(phase)))
-    return (
-        f'The moon is {phase_str} and is {illumination}% illuminated.'
-    )
+    return f'The moon is {phase_str} and is {illumination}% illuminated.'
 
 
 def compose_moonsun_tweet():

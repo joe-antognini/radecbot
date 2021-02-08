@@ -19,6 +19,7 @@ EPHEMERIDES_TEST_PATH = Path(__file__).parent / 'fixtures/de421_excerpt.bsp'
 class TestLoadEphemerides(unittest.TestCase):
     def test_load_ephemerides_no_cache(self):
         with tempfile.TemporaryDirectory() as tmpdir:
+
             def _mock_download(url, filename):
                 shutil.copy(
                     str(EPHEMERIDES_TEST_PATH),
@@ -29,9 +30,7 @@ class TestLoadEphemerides(unittest.TestCase):
                 radecbot.Loader, 'download'
             ) as mock_download:
                 mock_download.side_effect = _mock_download
-                ephemerides = radecbot.load_ephemerides(
-                    cache_dir=tmpdir
-                )
+                ephemerides = radecbot.load_ephemerides(cache_dir=tmpdir)
 
             self.assertTrue(
                 isinstance(ephemerides, skyfield.jpllib.SpiceKernel)
@@ -43,7 +42,7 @@ class TestEphemerides(unittest.TestCase):
         self.tmpdir = tempfile.TemporaryDirectory()
         shutil.copy(
             str(EPHEMERIDES_TEST_PATH),
-            os.path.join(self.tmpdir.name, radecbot.EPHEMERIDES_FILE)
+            os.path.join(self.tmpdir.name, radecbot.EPHEMERIDES_FILE),
         )
 
         self.loader = skyfield.api.Loader(self.tmpdir.name)
