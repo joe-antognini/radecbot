@@ -2,6 +2,8 @@
 
 import os
 from enum import Enum
+from typing import Dict
+from typing import Tuple
 
 import numpy as np
 import skyfield.api
@@ -40,7 +42,17 @@ SYMBOLS = {
 }
 
 
-def load_ephemerides(cache_dir=None, ephemerides_file=EPHEMERIDES_FILE):
+def load_ephemerides(
+    cache_dir: str = None, ephemerides_file: str = EPHEMERIDES_FILE
+) -> skyfield.jpllib.SpiceKernel:
+    """Load the DE421 ephemeris.
+
+    Note that the first time this function is called, it will need to download
+    the DE421 epehemeris file from JPL.  This file is 17 MB, but the server is
+    a little slow, so it can take about 10 seconds.  Subsequently, this data
+    will be cached in `$HOME/.cache/radecbot` and loading will be fast.
+
+    """
     if cache_dir is None:
         cache_dir = os.path.join(os.getenv('HOME'), '.cache/radecbot')
 
@@ -60,10 +72,15 @@ def load_ephemerides(cache_dir=None, ephemerides_file=EPHEMERIDES_FILE):
     return loader(ephemerides_file)
 
 
-def get_planet_radec(ephemerides, planet, t):
+def get_planet_radec(
+    ephemerides: skyfield.jpllib.SpiceKernel,
+    planet: Planets,
+    time: skyfield.timelib.Timescale,
+) -> Tuple[skyfield.units.Angle, skyfield.units.Angle]:
+    """Calculate the right ascension and declination of a planet."""
     position = (
         ephemerides[Planets.EARTH.value]
-        .at(t)
+        .at(time)
         .observe(ephemerides[planet.value])
     )
     ra, dec, _ = position.radec()
@@ -71,39 +88,82 @@ def get_planet_radec(ephemerides, planet, t):
     return ra, dec
 
 
-def get_all_radecs(ephemerides, t):
+def get_all_radecs(
+    ephemerides: skyfield.jpllib.SpiceKernel, time: skyfield.timelib.Timescale
+) -> Dict[Planets, Tuple[skyfield.units.Angle, skyfield.units.Angle]]:
+    """Return a dictionary with the RAs and decs of all planets."""
     radecs = {}
 
     for planet in Planets:
         if planet == Planets.EARTH:
             continue
 
-        ra, dec = get_planet_radec(ephemerides, planet, t)
+        ra, dec = get_planet_radec(ephemerides, planet, time)
 
         radecs[planet] = (ra, dec)
 
     return radecs
 
 
-def moon_phase(ephemerides, t):
+def moon_phase(
+    ephemerides: skyfield.jpllib.SpiceKernel, time: skyfield.timelib.Timescale
+) -> float:
+    """Calculate the phase angle of the Moon.
+
+    This will be 0 degrees at new moon, 90 degrees at first quarter, 180
+    degrees at full moon, etc.
+
+    """
     sun = ephemerides[Planets.SUN.value]
     earth = ephemerides[Planets.EARTH.value]
     moon = ephemerides[Planets.MOON.value]
 
-    apparent_sun = earth.at(t).observe(sun).apparent()
+    apparent_sun = earth.at(time).observe(sun).apparent()
     _, solar_longitude, _ = apparent_sun.frame_latlon(ecliptic_frame)
 
-    apparent_moon = earth.at(t).observe(moon).apparent()
+    apparent_moon = earth.at(time).observe(moon).apparent()
     _, lunar_longitude, _ = apparent_moon.frame_latlon(ecliptic_frame)
 
     return (lunar_longitude.degrees - solar_longitude.degrees) % 360
 
 
-def moon_illumination(phase):
+def moon_illumination(phase: float) -> float:
+    """Calculate the percentage of the moon that is illuminated.
+
+    Currently this value increases approximately linearly in time from new moon
+    to full, and then linearly back down until the next new moon.
+
+    Args:
+        phase: float
+            The phase angle of the Moon, in degrees.
+
+    Returns:
+        illumination: flaot
+            The percentage of the Moon that is illuminated.
+
+    """
     return 100 * (1 - np.abs(phase - 180) / 180)
 
 
-def compose_planet_tweet():
+def compose_planet_tweet() -> str:
+    """Create a tweet with the positions of the planets.
+
+    This will determine the position of the planets at the time this function
+    is run.
+
+    The output will look something like this:
+
+        Current planetary RA/Decs:
+
+        ☿: 21h31m14s; -11°2′08″
+        ♀: 20h36m25s; -19°27′05″
+        ♂: 02h50m31s; +17°45′15″
+        ♃: 20h55m14s; -17°55′50″
+        ♄: 20h32m43s; -19°15′42″
+        ⛢: 02h17m57s; +13°20′03″
+        ♆: 23h21m54s; -05°15′59″
+
+    """
     ephemerides = load_ephemerides()
     t = skyfield.api.load.timescale().now()
 
@@ -127,7 +187,21 @@ def compose_planet_tweet():
     return '\n'.join(s)
 
 
-def phase_str(phase):
+def phase_str(phase: float) -> str:
+    """Create a string describing the phase of the Moon.
+
+    For example, if the phase is 180 degrees, the result will look like this:
+
+        The moon is full and is 100% illuminated.
+
+    Args:
+        phase: float
+            The phase of the Moon in degrees.
+
+    Returns: str
+        A string describing the phase of the Moon.
+
+    """
     if phase >= 345 or phase < 15:
         phase_str = 'new'
     elif phase >= 15 and phase < 75:
@@ -150,6 +224,21 @@ def phase_str(phase):
 
 
 def compose_moonsun_tweet():
+    """Create a tweet with the positions of the Sun and Moon.
+
+    This will determine the position of the Sun and Moon at the time this
+    function is run.
+
+    The output will look something like this:
+
+        Current RA/Dec of the Sun & Moon:
+
+        ☉: 21h22m18s; -15°23′32″
+        ☾: 17h06m14s; -22°50′09″
+
+        The moon is a waning crescent and is 34% illuminated.
+
+    """
     ephemerides = load_ephemerides()
     t = skyfield.api.load.timescale().now()
     radecs = get_all_radecs(ephemerides, t)
@@ -174,6 +263,22 @@ def compose_moonsun_tweet():
 
 
 def tweet():
+    """Compose two tweets and post them to Twitter.
+
+    This will compose two tweets, one describing the positions of the planets
+    and the other describing the position of the Sun & Moon.  It will then post
+    these two tweets to Twitter.
+
+    Note that the following need to be defined in the file
+    `$HOME/.config/radecbot/config.yaml`:
+
+    * API Key
+    * API Secret Key
+    * Bearer token
+    * Access token
+    * Acess token secret
+
+    """
     config_path = os.path.join(
         os.getenv('HOME'), '.config/radecbot/config.yaml'
     )
