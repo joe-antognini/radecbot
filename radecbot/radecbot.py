@@ -5,6 +5,7 @@ from enum import Enum
 from typing import Dict
 from typing import Tuple
 
+import click
 import numpy as np
 import skyfield.api
 import tweepy
@@ -262,7 +263,13 @@ def compose_moonsun_tweet():
     return '\n'.join(s)
 
 
-def tweet():
+@click.command()
+@click.option(
+    '--dry-run',
+    is_flag=True,
+    help='If set, only print out the tweets, don\'t actually tweet them.',
+)
+def tweet(dry_run):
     """Compose two tweets and post them to Twitter.
 
     This will compose two tweets, one describing the positions of the planets
@@ -279,18 +286,26 @@ def tweet():
     * Acess token secret
 
     """
-    config_path = os.path.join(
-        os.getenv('HOME'), '.config/radecbot/config.yaml'
-    )
-    with open(config_path) as fp:
-        config = yaml.safe_load(fp)
-    auth = tweepy.OAuthHandler(config['api_key'], config['api_secret_key'])
-    auth.set_access_token(
-        config['access_token'], config['access_token_secret']
-    )
-    api = tweepy.API(auth)
-    api.update_status(compose_planet_tweet())
-    api.update_status(compose_moonsun_tweet())
+    planet_tweet = compose_planet_tweet()
+    moonsun_tweet = compose_moonsun_tweet()
+
+    if dry_run:
+        print(planet_tweet)
+        print(moonsun_tweet)
+    else:
+        config_path = os.path.join(
+            os.getenv('HOME'), '.config/radecbot/config.yaml'
+        )
+        with open(config_path) as fp:
+            config = yaml.safe_load(fp)
+        auth = tweepy.OAuthHandler(config['api_key'], config['api_secret_key'])
+        auth.set_access_token(
+            config['access_token'], config['access_token_secret']
+        )
+        api = tweepy.API(auth)
+
+        api.update_status(planet_tweet)
+        api.update_status(moonsun_tweet)
 
 
 if __name__ == '__main__':

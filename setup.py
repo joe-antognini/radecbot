@@ -24,6 +24,7 @@ setup(
     license='MIT',
     packages=['radecbot'],
     install_requires=[
+        'click==7.1.2',
         'numpy==1.20.0',
         'skyfield==1.36',
         'tweepy==3.10.0',
