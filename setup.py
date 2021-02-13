@@ -30,8 +30,7 @@ setup(
         'tweepy==3.10.0',
     ],
     entry_points={
-        'console_scripts':
-            ['radecbot=radecbot.radecbot'],
+        'console_scripts': ['radecbot=radecbot.radecbot:tweet'],
     },
     include_package_data=True,
     setup_requires=['pytest-runner'],
