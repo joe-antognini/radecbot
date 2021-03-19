@@ -121,7 +121,7 @@ class TestEphemerides(unittest.TestCase):
         mock_load_ephemerides.return_value = self.ephemerides
 
         ra = skyfield.units.Angle(hours=12.51)
-        dec = skyfield.units.Angle(degrees=180.51)
+        dec = skyfield.units.Angle(degrees=80.51)
         mock_radecs.return_value = {
             radecbot.Planets.MERCURY: (ra, dec),
             radecbot.Planets.VENUS: (ra, dec),
@@ -136,13 +136,47 @@ class TestEphemerides(unittest.TestCase):
         expected_tweet = (
             'Current planetary RA/Decs:\n'
             '\n'
-            '☿: 12h30m36s; +180°30′36″\n'
-            '♀: 12h30m36s; +180°30′36″\n'
-            '♂: 12h30m36s; +180°30′36″\n'
-            '♃: 12h30m36s; +180°30′36″\n'
-            '♄: 12h30m36s; +180°30′36″\n'
-            '⛢: 12h30m36s; +180°30′36″\n'
-            '♆: 12h30m36s; +180°30′36″'
+            '☿: 12h30m36s; +80°30′36″\n'
+            '♀: 12h30m36s; +80°30′36″\n'
+            '♂: 12h30m36s; +80°30′36″\n'
+            '♃: 12h30m36s; +80°30′36″\n'
+            '♄: 12h30m36s; +80°30′36″\n'
+            '⛢: 12h30m36s; +80°30′36″\n'
+            '♆: 12h30m36s; +80°30′36″'
+        )
+
+        self.assertEqual(tweet, expected_tweet)
+
+    @unittest.mock.patch('radecbot.radecbot.get_all_radecs')
+    @unittest.mock.patch('radecbot.radecbot.load_ephemerides')
+    def test_compose_planet_tweet_neg_dec(
+        self, mock_load_ephemerides, mock_radecs
+    ):
+        mock_load_ephemerides.return_value = self.ephemerides
+
+        ra = skyfield.units.Angle(hours=12.51)
+        dec = skyfield.units.Angle(degrees=-1.51)
+        mock_radecs.return_value = {
+            radecbot.Planets.MERCURY: (ra, dec),
+            radecbot.Planets.VENUS: (ra, dec),
+            radecbot.Planets.MARS: (ra, dec),
+            radecbot.Planets.JUPITER: (ra, dec),
+            radecbot.Planets.SATURN: (ra, dec),
+            radecbot.Planets.URANUS: (ra, dec),
+            radecbot.Planets.NEPTUNE: (ra, dec),
+        }
+        tweet = radecbot.compose_planet_tweet()
+
+        expected_tweet = (
+            'Current planetary RA/Decs:\n'
+            '\n'
+            '☿: 12h30m36s; -01°30′36″\n'
+            '♀: 12h30m36s; -01°30′36″\n'
+            '♂: 12h30m36s; -01°30′36″\n'
+            '♃: 12h30m36s; -01°30′36″\n'
+            '♄: 12h30m36s; -01°30′36″\n'
+            '⛢: 12h30m36s; -01°30′36″\n'
+            '♆: 12h30m36s; -01°30′36″'
         )
 
         self.assertEqual(tweet, expected_tweet)
@@ -156,7 +190,7 @@ class TestEphemerides(unittest.TestCase):
         mock_load_ephemerides.return_value = self.ephemerides
 
         ra = skyfield.units.Angle(hours=12.51)
-        dec = skyfield.units.Angle(degrees=180.51)
+        dec = skyfield.units.Angle(degrees=80.51)
         mock_radecs.return_value = {
             radecbot.Planets.SUN: (ra, dec),
             radecbot.Planets.MOON: (ra, dec),
@@ -167,8 +201,36 @@ class TestEphemerides(unittest.TestCase):
         expected_tweet = (
             'Current RA/Dec of the Sun & Moon:\n'
             '\n'
-            '☉: 12h30m36s; +180°30′36″\n'
-            '☾: 12h30m36s; +180°30′36″\n'
+            '☉: 12h30m36s; +80°30′36″\n'
+            '☾: 12h30m36s; +80°30′36″\n'
+            '\n'
+            'The moon is full and is 100% illuminated.'
+        )
+
+        self.assertEqual(tweet, expected_tweet)
+
+    @unittest.mock.patch('radecbot.radecbot.moon_phase')
+    @unittest.mock.patch('radecbot.radecbot.get_all_radecs')
+    @unittest.mock.patch('radecbot.radecbot.load_ephemerides')
+    def test_compose_moonsun_tweet_neg_dec(
+        self, mock_load_ephemerides, mock_radecs, mock_moon_phase
+    ):
+        mock_load_ephemerides.return_value = self.ephemerides
+
+        ra = skyfield.units.Angle(hours=12.51)
+        dec = skyfield.units.Angle(degrees=-0.51)
+        mock_radecs.return_value = {
+            radecbot.Planets.SUN: (ra, dec),
+            radecbot.Planets.MOON: (ra, dec),
+        }
+        mock_moon_phase.return_value = 180
+        tweet = radecbot.compose_moonsun_tweet()
+
+        expected_tweet = (
+            'Current RA/Dec of the Sun & Moon:\n'
+            '\n'
+            '☉: 12h30m36s; -00°30′36″\n'
+            '☾: 12h30m36s; -00°30′36″\n'
             '\n'
             'The moon is full and is 100% illuminated.'
         )

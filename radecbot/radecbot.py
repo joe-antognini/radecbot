@@ -179,10 +179,11 @@ def compose_planet_tweet() -> str:
 
         ra_hr, ra_min, ra_sec = map(int, map(round, ra.hms()))
         dec_deg, dec_min, dec_sec = map(int, map(round, dec.dms()))
+        sign = '+' if dec.degrees >= 0 else '-'
         s.append(
             f'{SYMBOLS[planet]}: '
             f'{ra_hr:02d}h{ra_min:02d}m{ra_sec:02d}s; '
-            f'{dec_deg:+03d}°{abs(dec_min):01d}′{abs(dec_sec):02}″'
+            f'{sign}{abs(dec_deg):02d}°{abs(dec_min):01d}′{abs(dec_sec):02}″'
         )
 
     return '\n'.join(s)
@@ -250,10 +251,11 @@ def compose_moonsun_tweet():
 
         ra_hr, ra_min, ra_sec = map(int, map(round, ra.hms()))
         dec_deg, dec_min, dec_sec = map(int, map(round, dec.dms()))
+        sign = '+' if dec.degrees >= 0 else '-'
         s.append(
             f'{SYMBOLS[planet]}: '
             f'{ra_hr:02d}h{ra_min:02d}m{ra_sec:02d}s; '
-            f'{dec_deg:+03d}°{abs(dec_min):01d}′{abs(dec_sec):02}″'
+            f'{sign}{abs(dec_deg):02d}°{abs(dec_min):01d}′{abs(dec_sec):02}″'
         )
 
     current_moon_phase = moon_phase(ephemerides, t)
