@@ -204,21 +204,21 @@ def phase_str(phase: float) -> str:
         A string describing the phase of the Moon.
 
     """
-    if phase >= 345 or phase < 15:
+    if phase >= 355 or phase < 5:
         phase_str = 'new'
-    elif phase >= 15 and phase < 75:
+    elif phase >= 5 and phase < 85:
         phase_str = 'a waxing crescent'
-    elif phase >= 75 and phase < 105:
+    elif phase >= 85 and phase < 95:
         phase_str = 'at first quarter'
-    elif phase >= 105 and phase < 165:
+    elif phase >= 95 and phase < 175:
         phase_str = 'a waxing gibbous'
-    elif phase >= 165 and phase < 195:
+    elif phase >= 175 and phase < 185:
         phase_str = 'full'
-    elif phase >= 195 and phase < 255:
+    elif phase >= 185 and phase < 265:
         phase_str = 'a waning gibbous'
-    elif phase >= 255 and phase < 285:
+    elif phase >= 265 and phase < 275:
         phase_str = 'at third quarter'
-    elif phase >= 285 and phase < 345:
+    elif phase >= 275 and phase < 355:
         phase_str = 'a waning crescent'
 
     illumination = int(round(moon_illumination(phase)))
